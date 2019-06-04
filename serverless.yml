@@ -1,0 +1,43 @@
+service: kevin-services
+frameworkVersion: ">=1.28.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: go1.x
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource: "*"
+
+package:
+ exclude:
+   - ./**
+ include:
+   - ./bin/**
+
+functions:
+  externalQuotesEtl:
+    handler: bin/externalQuotesEtl
+    events:
+      - schedule: rate(10 days)
+
+  quotesCrud:
+    handler: bin/quotesCrud
+    events:
+      - http:
+          path: quotes
+          method: any
+
+resources:
+  Resources:
+    kevinExternalQuotes:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: kevin-external-quotes
+        
+    kevinInternalQuotes:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: kevin-internal-quotes
+
